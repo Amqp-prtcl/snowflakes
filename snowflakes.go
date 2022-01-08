@@ -1,6 +1,7 @@
 package snowflakes
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -15,6 +16,8 @@ var (
 
 	stepMask int64 = -1 ^ (-1 << stepBits)
 	nodeMask int64 = (-1 ^ (-1 << nodeBits)) << nodeShift
+
+	ErrInvalidID error = fmt.Errorf("Invalid ID format")
 
 	epoch time.Time = time.Unix(0, 0)
 )
@@ -57,6 +60,9 @@ type ID int64
 
 func ParseID(s string) (ID, error) {
 	id, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		err = ErrInvalidID
+	}
 	return ID(id), err
 }
 
