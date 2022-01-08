@@ -81,6 +81,10 @@ func (id ID) bits() string {
 	return strconv.FormatInt(int64(id), 2)
 }
 
+func (id ID) IsNull() bool {
+	return id == 0
+}
+
 type Node struct {
 	last int64
 	node int64
