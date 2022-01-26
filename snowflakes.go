@@ -17,7 +17,7 @@ var (
 	stepMask int64 = -1 ^ (-1 << stepBits)
 	nodeMask int64 = (-1 ^ (-1 << nodeBits)) << nodeShift
 
-	ErrInvalidID error = fmt.Errorf("Invalid ID format")
+	ErrInvalidID error = fmt.Errorf("invalid ID format")
 
 	epoch time.Time = time.Unix(0, 0)
 )
@@ -56,39 +56,70 @@ func getTimeFromMillis(millis int64) time.Time {
 	return epoch.Add(time.Millisecond * time.Duration(millis))
 }
 
-type ID int64
+func toInt(id ID) (int64, bool) {
+	i, err := strconv.ParseInt(id.String(), 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return i, true
+}
+
+func toStr(i int64) ID {
+	return ID(fmt.Sprint(i))
+}
+
+type ID string
 
 func ParseID(s string) (ID, error) {
 	id, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		err = ErrInvalidID
 	}
-	return ID(id), err
+	return toStr(id), err
 }
 
 func (id ID) String() string {
-	return strconv.FormatInt(int64(id), 10)
+	return string(id)
 }
 
 func (id ID) Time() time.Time {
-	t := int64(id) >> timeShift
+	i, ok := toInt(id)
+	if !ok {
+		return time.Now()
+	}
+	t := i >> timeShift
 	return getTimeFromMillis(t)
 }
 
 func (id ID) Node() int64 {
-	return (int64(id) & nodeMask) >> int64(nodeShift)
+	i, ok := toInt(id)
+	if !ok {
+		return 0
+	}
+	return (i & nodeMask) >> int64(nodeShift)
 }
 
 func (id ID) Step() int64 {
-	return int64(id) & stepMask
+	i, ok := toInt(id)
+	if !ok {
+		return 0
+	}
+	return i & stepMask
 }
 
+/*
 func (id ID) bits() string {
-	return strconv.FormatInt(int64(id), 2)
+	i, ok := toInt(id)
+	if !ok {
+		return ""
+	}
+	return strconv.FormatInt(i, 2)
 }
+*/
 
-func (id ID) IsNull() bool {
-	return id == 0
+func (id ID) IsValid() bool {
+	_, ok := toInt(id)
+	return ok
 }
 
 type Node struct {
@@ -122,5 +153,5 @@ func (n *Node) NewID() ID {
 	n.last = now
 	id := now<<timeShift | n.node<<nodeShift | n.step
 	n.Unlock()
-	return ID(id)
+	return toStr(id)
 }
