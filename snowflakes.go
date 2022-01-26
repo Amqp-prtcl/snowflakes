@@ -119,7 +119,7 @@ func (id ID) bits() string {
 
 func (id ID) IsValid() bool {
 	_, ok := toInt(id)
-	return ok
+	return ok && id != ""
 }
 
 type Node struct {
