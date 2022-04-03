@@ -82,13 +82,12 @@ func (id ID) String() string {
 	return string(id)
 }
 
-func (id ID) Time() time.Time {
+func (id ID) Step() int64 {
 	i, ok := toInt(id)
 	if !ok {
-		return time.Now()
+		return 0
 	}
-	t := i >> timeShift
-	return getTimeFromMillis(t)
+	return i & stepMask
 }
 
 func (id ID) Node() int64 {
@@ -96,15 +95,24 @@ func (id ID) Node() int64 {
 	if !ok {
 		return 0
 	}
-	return (i & nodeMask) >> int64(nodeShift)
+	return (i & nodeMask) >> nodeShift
 }
 
-func (id ID) Step() int64 {
+func (id ID) Stamp() int64 {
 	i, ok := toInt(id)
 	if !ok {
 		return 0
 	}
-	return i & stepMask
+	return i >> timeShift
+}
+
+func (id ID) Time() time.Time {
+	i, ok := toInt(id)
+	if !ok {
+		return time.Now()
+	}
+	t := i >> timeShift
+	return getTimeFromMillis(t)
 }
 
 /*
